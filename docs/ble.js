@@ -342,7 +342,7 @@ var canvas = elc;
 
 var ignorePressure = true;
 
-function redraw() {
+function pointIteration(segCallBack) {
     for (segId = 0; segId < points.length; segId++) {
         var cvtLine = [];
         for (pntId = 0; pntId < points[segId].length; pntId++) {
@@ -364,21 +364,109 @@ function redraw() {
             }
             cvtLine.push({ x: c.x, y: c.y });
         }
-        if (cvtLine.length > 0) {
-            ctx.strokeStyle = "red";
-            ctx.beginPath();
-            if (cvtLine.length > 1) {
-                ctx.lineWidth = defLineWidth;
-                ctx.moveTo(cvtLine[0].x, cvtLine[0].y);
-                for (var ii = 1; ii < cvtLine.length; ii++) {
-                    ctx.lineTo(cvtLine[ii].x, cvtLine[ii].y);
-                }
-            } else {
-                ctx.arc(cvtLine[0].x, cvtLine[0].y, defLineWidth, 0, 2 * Math.PI);
-            }
-            ctx.stroke();
-        };
+        segCallBack(cvtLine)
     }
+}
+
+function segDraw(cvtLine) {
+    if (cvtLine.length > 0) {
+        ctx.strokeStyle = "red";
+        ctx.beginPath();
+        if (cvtLine.length > 1) {
+            ctx.lineWidth = defLineWidth;
+            ctx.moveTo(cvtLine[0].x, cvtLine[0].y);
+            for (var ii = 1; ii < cvtLine.length; ii++) {
+                ctx.lineTo(cvtLine[ii].x, cvtLine[ii].y);
+            }
+        } else {
+            ctx.arc(cvtLine[0].x, cvtLine[0].y, defLineWidth, 0, 2 * Math.PI);
+        }
+        ctx.stroke();
+    };
+}
+
+function redraw() {
+    pointIteration(segDraw);
+}
+
+function segCollect(cvtLine) {
+    //window.collectSegs.push(JSON.parse(JSON.stringify(cvtLine)));
+    if (cvtLine.length > 1) {
+        var line = '<path d="';
+        line += "M" + cvtLine[0].x + " " + cvtLine[0].y;
+        for (var ii = 1; ii < cvtLine.length; ii++) {
+            line += "L" + cvtLine[ii].x + " " + cvtLine[ii].y;
+        }
+        line += '"/>';
+        window.collectSegs.push(line);
+    };
+}
+
+function share(e) {
+    window.collectSegs = [];
+    pointIteration(segCollect);
+    console.log(window.collectSegs);
+    var as_text = `<?xml version="1.0" standalone="no"?>
+    <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+     "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+    <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+     width="994.000000pt" height="1280.000000pt" viewBox="0 0 994.000000 1280.000000"
+     preserveAspectRatio="xMidYMid meet">
+    <metadata>
+    Created by potrace 1.15, written by Peter Selinger 2001-2017
+    </metadata>
+    <g transform="translate(0.000000,1280.000000) scale(0.100000,-0.100000)"
+    fill="#000000" stroke="none">
+    <path d="M7270 12793 c-960 -35 -1582 -162 -1935 -394 -345 -228 -584 -593
+    -695 -1064 -51 -216 -54 -249 -47 -614 7 -398 25 -581 57 -581 31 0 83 278
+    139 750 55 460 293 917 597 1145 255 192 602 282 1304 337 105 8 464 12 1115
+    13 528 1 1178 5 1444 9 l483 9 -15 -24 c-34 -55 -400 -754 -515 -984 -217
+    -435 -377 -701 -562 -936 -115 -145 -326 -352 -430 -421 -259 -172 -770 -375
+    -1238 -492 -328 -83 -556 -109 -897 -104 -161 2 -252 -1 -254 -7 -7 -16 94
+    -72 178 -99 314 -103 764 -98 1292 14 446 94 909 268 1160 436 365 245 708
+    670 1033 1281 l95 178 105 375 c177 629 255 914 253 916 -3 4 -902 131 -1433
+    204 l-442 60 -358 -2 c-198 -1 -393 -3 -434 -5z"/>
+    <path d="M8592 11829 c-766 -68 -1769 -568 -2782 -1388 -473 -382 -984 -866
+    -1374 -1301 -76 -85 -146 -163 -155 -173 -16 -17 -22 -15 -122 32 -575 270
+    -1200 298 -1765 80 -278 -107 -672 -344 -976 -587 -162 -129 -483 -447 -602
+    -597 -700 -880 -957 -1985 -740 -3170 79 -430 219 -842 434 -1280 207 -423
+    417 -745 733 -1125 155 -186 540 -571 727 -726 660 -548 1360 -930 2200 -1202
+    102 -33 248 -84 325 -115 828 -326 1595 -363 2282 -110 736 270 1351 871 1789
+    1745 259 516 451 1126 553 1758 68 416 86 652 86 1130 0 423 -10 571 -56 895
+    -109 767 -354 1409 -710 1856 -72 90 -271 289 -290 289 -13 0 -14 2 87 -121
+    270 -328 472 -729 609 -1209 349 -1231 241 -2809 -279 -4080 -270 -658 -644
+    -1199 -1091 -1577 -358 -303 -799 -501 -1275 -575 -115 -18 -564 -17 -690 0
+    -303 43 -608 125 -905 244 -82 33 -235 88 -340 123 -688 228 -1297 544 -1848
+    958 -716 538 -1291 1230 -1663 2002 -220 458 -355 903 -425 1406 -26 192 -37
+    618 -20 817 91 1087 630 2000 1546 2621 321 217 595 355 836 421 410 111 859
+    77 1272 -97 59 -25 107 -47 107 -49 0 -2 -56 -74 -126 -159 -518 -644 -904
+    -1285 -1068 -1775 -174 -522 -97 -889 216 -1038 242 -116 571 -104 1043 38
+    782 236 1241 660 1331 1231 20 125 14 362 -11 479 -105 482 -452 966 -922
+    1287 l-82 56 28 36 c181 228 815 882 1121 1157 895 805 1752 1357 2503 1613
+    181 62 381 112 552 140 72 12 146 24 165 28 l35 6 -40 8 c-48 9 -100 9 -223
+    -2z m-4234 -3268 c360 -242 632 -568 767 -921 57 -146 78 -265 78 -430 0 -159
+    -11 -223 -63 -358 -67 -173 -236 -377 -425 -511 -239 -168 -696 -341 -1049
+    -396 -153 -24 -348 -17 -430 15 -67 26 -139 86 -166 140 -47 92 -51 280 -10
+    450 123 510 503 1182 1097 1938 57 72 106 132 109 132 3 0 44 -26 92 -59z"/>
+    </g>
+    </svg>
+    `;
+    var as_text = `<?xml version="1.0" standalone="no"?>
+    <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+     "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+    <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+     width="994.000000pt" height="1280.000000pt" viewBox="0 0 994.000000 1280.000000"
+     preserveAspectRatio="xMidYMid meet"><g fill="none" stroke="navy">`;
+    as_text += window.collectSegs.join("\n") + "\n";
+    as_text += "</g></svg>";
+    const blob = new Blob([as_text], { type: "image/svg+xml" });
+    // create an URI pointing to that blob
+    const url = URL.createObjectURL(blob);
+    const win = open(url);
+    // so the Garbage Collector can collect the blob
+    win.onload = (evt) => URL.revokeObjectURL(url);
+
+    return false;
 }
 
 function drawPoint(json) {
