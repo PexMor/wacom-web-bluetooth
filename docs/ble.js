@@ -465,7 +465,7 @@ function share(e) {
 
     var a = document.getElementById("dwna");
     // a.setAttribute("class", "svg-crowbar");
-    var ts = moment().format('YYYYMMDD_HH-ms');
+    var ts = moment().format('YYYYMMDD_HHms');
     a.setAttribute("download", "wacom" + ts + ".svg");
     a.setAttribute("href", url);
     // a.style["display"] = "none";
