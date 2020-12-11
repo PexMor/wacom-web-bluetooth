@@ -462,7 +462,16 @@ function share(e) {
     const blob = new Blob([as_text], { type: "image/svg+xml" });
     // create an URI pointing to that blob
     const url = URL.createObjectURL(blob);
-    const win = open(url);
+
+    var a = document.getElementById("dwna");
+    // a.setAttribute("class", "svg-crowbar");
+    var ts = moment().format('YYYYMMDD_HH-ms');
+    a.setAttribute("download", "wacom" + ts + ".svg");
+    a.setAttribute("href", url);
+    // a.style["display"] = "none";
+    a.click();
+
+    // const win = open(url);
     // so the Garbage Collector can collect the blob
     win.onload = (evt) => URL.revokeObjectURL(url);
 
