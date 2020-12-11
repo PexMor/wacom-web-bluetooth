@@ -14,12 +14,13 @@
   <script src="//cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
     crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="github-markdown.css">
-    <link rel="stylesheet" href="embedmd.css">
-    <link href="//fonts.googleapis.com/css2?family=Open+Sans&family=Roboto&display=swap&subset=latin,latin-ext" rel="stylesheet"> 
-    <script src="mdjs/markdown.js"></script>
-    <script>
-var mdSrc=`
+  <link rel="stylesheet" href="github-markdown.css">
+  <link rel="stylesheet" href="embedmd.css">
+  <link href="//fonts.googleapis.com/css2?family=Open+Sans&family=Roboto&display=swap&subset=latin,latin-ext"
+    rel="stylesheet">
+  <script src="mdjs/markdown.js"></script>
+  <script>
+    var mdSrc = `
 ## Bluetooth demo for Wacom Bamboo Slate
 
 This is the [Web Bluetooth API](https://webbluetoothcg.github.io/web-bluetooth/) demostrator). Actually an attempt to make realworld app that can be used.
@@ -47,14 +48,14 @@ __Connect__
 4. You get switched to drawing pane and you can start drawing.
 
 `;
-        window["markdown"].ready.then(markdown => {
-            var res = markdown.parse(mdSrc);
-            var el = document.getElementById('render');
-            if (el) {
-                el.innerHTML = res;
-            }
-        });
-    </script>
+    window["markdown"].ready.then(markdown => {
+      var res = markdown.parse(mdSrc);
+      var el = document.getElementById('render');
+      if (el) {
+        el.innerHTML = res;
+      }
+    });
+  </script>
   <link rel="stylesheet" href="main.css">
 </head>
 
@@ -72,13 +73,16 @@ __Connect__
           aria-label="Device name prefix" aria-describedby="addon-wrapping">
       </div>
       <br />
-      <a href="#ble" type="button" class="btn btn-success btn-xs" onclick="findBle(event)"><i class="fa fa-pencil"
+      <a href="#bleConn" type="button" class="btn btn-success btn-xs" onclick="findBle(event)"><i class="fa fa-pencil"
           aria-hidden="true">Conn</i></a>
-      <a href="#ble" type="button" class="btn btn-danger btn-xs" onclick="onDisconnectButtonClick()"><i
+      <a href="#bleDisc" type="button" class="btn btn-danger btn-xs" onclick="onDisconnectButtonClick()"><i
           class="fa fa-sign-out" aria-hidden="true">Disc</i></a>
-      <a href="#ble" type="button" class="btn btn-info btn-xs" onclick="regBle(event)"><i class="fa fa-sign-in"
+      <a href="#bleReg" type="button" class="btn btn-info btn-xs" onclick="regBle(event)"><i class="fa fa-sign-in"
           aria-hidden="true">Reg</i></a>
-      <span id="bat"><i class="fa fa-battery-half" aria-hidden="true"></i>?%<i class="fa fa-bolt" aria-hidden="true"></i>
+      <a href="#bleRot" type="button" class="btn btn-info btn-xs" onclick="rotate(event)"><i class="fa fa-undo"
+          aria-hidden="true">Rotate</i></a>
+      <span id="bat"><i class="fa fa-battery-half" aria-hidden="true"></i>?%<i class="fa fa-bolt"
+          aria-hidden="true"></i>
       </span>
     </form>
     <hr />
@@ -89,10 +93,11 @@ __Connect__
   </div>
   <div id='canvas-div' class='canvas-div'>
     <div style='font-size: 32px; padding: 1em;line-height: 120%'>
-    <i class="fa fa-paint-brush" aria-hidden="true"></i>
-    Just draw! ~ Začni kreslit!</div>
+      <i class="fa fa-paint-brush" aria-hidden="true"></i>
+      Just draw! ~ Začni kreslit!</div>
     <canvas id='canvas-extra' class='canvas-extra'></canvas>
   </div>
+  <script src='simplify' .js'></script>
   <script src='ble.js'></script>
 </body>
 

@@ -5,6 +5,7 @@ var elDebug = document.getElementById("debug");
 var elLog = document.getElementById("log");
 var elc = document.getElementById("canvas-extra");
 var ctx = elc.getContext("2d");
+let defLineWidth = 1.0;
 var w = window,
     d = document,
     e = d.documentElement;
@@ -153,6 +154,9 @@ function prepBle() {
         if (filterName && filterName != "") {
             filters.push({ namePrefix: filterName });
             allBle = false;
+            setCookie("blePfx", filterName)
+        } else {
+            eraseCookie("blePfx")
         }
     }
     if (allBle) {
@@ -160,15 +164,11 @@ function prepBle() {
     } else {
         options.filters = filters;
     }
-    console.log(options);
+    // console.log(options);
     return options;
 }
 
 function findBle(e) {
-    // log(e);
-    // let chid = 'generic_access';
-    // let chid = 'device_information';
-    // let decoder = new TextDecoder('utf-8');
     let encoder = new TextEncoder('utf-8');
     let options = prepBle();
     log('Requesting Bluetooth Device...');
@@ -205,6 +205,18 @@ function findBle(e) {
                 let cmd0 = concatTypedArrays(cmdPfx, identBytes);
                 log(toHexString(cmd0));
                 return window.ble.chars[NORDIC_UART_CHRC_TX_UUID].writeValue(cmd0);
+            });
+            queueSvc = queueSvc.then(_ => {
+                // height
+                let cmd1 = Uint8Array.of(WacomCmds.GetWidthHeight, 2, 3, 0);
+                log(toHexString(cmd1));
+                return window.ble.chars[NORDIC_UART_CHRC_TX_UUID].writeValue(cmd1);
+            });
+            queueSvc = queueSvc.then(_ => {
+                // width
+                let cmd1 = Uint8Array.of(WacomCmds.GetWidthHeight, 2, 4, 0);
+                log(toHexString(cmd1));
+                return window.ble.chars[NORDIC_UART_CHRC_TX_UUID].writeValue(cmd1);
             });
             queueSvc = queueSvc.then(_ => {
                 let cmd1 = Uint8Array.of(WacomCmds.GetBattery, 1, 0);
@@ -324,9 +336,50 @@ var cdDefOriVert = {
     "v": { "min": 0, "max": 21600, "rev": true }
 };
 var calibrationDone = true;
-var cd = JSON.parse(JSON.stringify(cdDefOriVert));
+var cd = cdDefOriHoriz; //copy:JSON.parse(JSON.stringify(cdDefOriVert));
 
 var canvas = elc;
+
+var ignorePressure = true;
+
+function redraw() {
+    for (segId = 0; segId < points.length; segId++) {
+        var cvtLine = [];
+        for (pntId = 0; pntId < points[segId].length; pntId++) {
+            json = points[segId][pntId];
+            var c = { x: 0, y: 0 };
+            var inp = { x: json.x, y: json.y };
+            if (cd.flip_axes) {
+                inp.x = json.y;
+                inp.y = json.x;
+            }
+            c.x = (inp.x - cd.h.min) * canvas.width / (cd.h.max - cd.h.min);
+            if (cd.h.rev) {
+                c.x = canvas.width - c.x;
+            }
+            c.y = (inp.y - cd.v.min) * canvas.height / (cd.v.max - cd.v.min);
+            // note reverse y in canvas (top-down)
+            if (!cd.v.rev) {
+                c.y = canvas.height - c.y;
+            }
+            cvtLine.push({ x: c.x, y: c.y });
+        }
+        if (cvtLine.length > 0) {
+            ctx.strokeStyle = "red";
+            ctx.beginPath();
+            if (cvtLine.length > 1) {
+                ctx.lineWidth = defLineWidth;
+                ctx.moveTo(cvtLine[0].x, cvtLine[0].y);
+                for (var ii = 1; ii < cvtLine.length; ii++) {
+                    ctx.lineTo(cvtLine[ii].x, cvtLine[ii].y);
+                }
+            } else {
+                ctx.arc(cvtLine[0].x, cvtLine[0].y, defLineWidth, 0, 2 * Math.PI);
+            }
+            ctx.stroke();
+        };
+    }
+}
 
 function drawPoint(json) {
     // console.log(canvas.width+"x"+canvas.height);
@@ -349,13 +402,49 @@ function drawPoint(json) {
         cursor = [c.x, c.y];
         if (json.p > 0) {
             var radius = 0.0005 * json.p;
-            ctx.strokeColor = "blue";
+            if (ignorePressure)
+                radius = defLineWidth / 2;
+            ctx.strokeStyle = "blue";
             ctx.beginPath();
             ctx.arc(c.x, c.y, radius, 0, 2 * Math.PI);
             ctx.stroke();
         };
     } else {
         msgT2T("Please calibrate", 10);
+    }
+}
+
+function dumpHex(value) {
+    var a = [];
+    for (let i = 0; i < value.byteLength; i++) {
+        a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
+    }
+    log('> ' + a.join(' '));
+    addLog("Recv: " + a.join(':'));
+}
+
+var wh = { w: 0, h: 0 }
+var curSeg = 0;
+var points = [[]]; // empty array
+function addPoint(json) {
+    // x,y,p
+    if (json.p === 0) {
+        nextSegment();
+    } else {
+        points[curSeg].push({ x: json.x, y: json.y });// ignore pressure , p: json.p });
+    }
+}
+
+function nextSegment() {
+    var preCnt = points[curSeg].length;
+    if (preCnt > 0) {
+        var preSeg = curSeg;
+        curSeg++;
+        points[curSeg] = [];
+        var res = simplify(points[preSeg], 1.0);
+        points[preSeg] = res;
+        console.log(preCnt + " -> " + res.length);
+        // console.log(points);
     }
 }
 
@@ -385,6 +474,27 @@ function handleNotifications(event) {
     } else if (value.getUint8(0) == WacomResps.RegConfirmedE4) {
         addLog("Registration confirmed");
         addLog("Disconnect and Press Conn on screen");
+    } else if (value.getUint8(0) == WacomResps.GetWidthHeight) {
+        addLog("Width Height");
+        dumpHex(value);
+        let worh = value.getUint8(2);
+        let size = value.getUint8(4) + value.getUint8(5) * 256 + value.getUint8(6) * 256 * 256 + value.getUint8(7) * 256 * 256 * 256;
+        // width or height in normal orientation, button is on the left
+        console.log(cdDefOriHoriz.h.max, cdDefOriHoriz.v.max, cdDefOriVert.h.max, cdDefOriVert.v.max, size)
+        if (worh === 4) {
+            // width
+            window.wh.w = size;
+            cdDefOriHoriz.v.max = size;
+            cdDefOriVert.h.max = size;
+        } else {
+            // worh === 3
+            // height
+            window.wh.h = size;
+            cdDefOriHoriz.h.max = size;
+            cdDefOriVert.v.max = size;
+        }
+        console.log(cdDefOriHoriz.h.max, cdDefOriHoriz.v.max, cdDefOriVert.h.max, cdDefOriVert.v.max, size)
+        console.log(window.wh)
     } else if (value.getUint8(0) == WacomResps.Data) {
         let bufLen = (value.byteLength - 2) / 2;
         var uints = new Uint16Array(bufLen);
@@ -401,6 +511,7 @@ function handleNotifications(event) {
             if (seq[0] == 0xffff && seq[1] == 0xffff && seq[2] == 0xffff) {
                 //log("Left proximity");
                 msgs.push({ op: "leftProx" });
+                nextSegment();
             } else {
                 let x = seq[0];
                 let y = seq[1];
@@ -409,16 +520,13 @@ function handleNotifications(event) {
                 var json = { x: x, y: y, p: p };
                 msgs.push({ op: "data", data: json });
                 drawPoint(json);
+                addPoint(json);
             }
             seq = seq.slice(3);
         }
         //log(msgs);
     } else {
-        for (let i = 0; i < value.byteLength; i++) {
-            a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
-        }
-        log('> ' + a.join(' '));
-        addLog("Recv: " + a.join(':'));
+        dumpHex(value)
     }
 }
 /* Utils */
@@ -473,14 +581,38 @@ function fixImg(sw, sh, iw, ih, fill, fit) {
     var x = dw / 2;
     var y = dh / 2;
     return { w: niw, h: nih, l: x, t: y };
+    /*
     theImage.style.width = niw + "px";
     theImage.style.height = nih + "px";
     theImage.style.left = x + 'px';
     theImage.style.top = y + 'px';
+    */
     //};
 }
 
 {
+    var el = document.getElementById("bleNamePfx")
+    if (el) {
+        cookieBlePfx = getCookie("blePfx")
+        if (cookieBlePfx) {
+            el.value = cookieBlePfx;
+        }
+    }
+}
+
+var oriVert = true;
+function rotate(e) {
+    oriVert = !oriVert;
+    if (oriVert) {
+        cd = cdDefOriVert;
+    } else {
+        cd = cdDefOriHoriz;
+    };
+    fitCanvas();
+    return false;
+}
+
+function fitCanvas() {
     var w = window,
         d = document,
         e = d.documentElement,
@@ -491,6 +623,19 @@ function fixImg(sw, sh, iw, ih, fill, fit) {
 
     window.idSize = fixImg(sw, sh, cd.h.max, cd.v.max, true, true);
     //console.log(idSize);
+
+    //console.log(JSON.stringify(idSize));
+    elc.style.width = (idSize.w) + "px";
+    elc.style.height = (idSize.h) + "px";
+    elc.width = (idSize.w);
+    elc.height = (idSize.h);
+    elc.style.top = 0;
+    elc.style.left = 0;
+    //var bt = 0.5;
+    elCanvasDiv.style.width = (idSize.w) + "px";
+    elCanvasDiv.style.height = (idSize.h) + "px";
+    elCanvasDiv.style.left = idSize.l;
+    elCanvasDiv.style.top = idSize.t;
 }
 
 function topright() {
@@ -500,40 +645,30 @@ function topright() {
     } else {
         elCfg.style.display = "none";
         elCanvasDiv.style.display = "block";
-        //console.log(JSON.stringify(idSize));
-        elc.style.width = (idSize.w) + "px";
-        elc.style.height = (idSize.h) + "px";
-        elc.width = (idSize.w);
-        elc.height = (idSize.h);
-        elc.style.top = 0;
-        elc.style.left = 0;
-        //var bt = 0.5;
-        elCanvasDiv.style.width = (idSize.w) + "px";
-        elCanvasDiv.style.height = (idSize.h) + "px";
-        elCanvasDiv.style.left = idSize.l;
-        elCanvasDiv.style.top = idSize.t;
+        fitCanvas();
+        redraw();
     }
 }
 
-function setCookie(name,value,days=100) {
+function setCookie(name, value, days = 100) {
     var expires = "";
     if (days) {
         var date = new Date();
-        date.setTime(date.getTime() + (days*24*60*60*1000));
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
         expires = "; expires=" + date.toUTCString();
     }
-    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 function getCookie(name) {
     var nameEQ = name + "=";
     var ca = document.cookie.split(';');
-    for(var i=0;i < ca.length;i++) {
+    for (var i = 0; i < ca.length; i++) {
         var c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1,c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
     }
     return null;
 }
-function eraseCookie(name) {   
-    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+function eraseCookie(name) {
+    document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
