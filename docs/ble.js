@@ -135,26 +135,10 @@ function onSvc(svc, oneSvc) {
     return pGetCharsPerScv;
 };
 
-function findBle(e) {
-    log(e);
+function prepBle() {
     let filters = [];
-    var elName = document.getElementById('bleName');
-    if (elName) {
-        let filterName = elName.value;
-        if (filterName) {
-            filters.push({ name: filterName });
-        }
-    }
-    let options = {};
-    let allBle = true;
-    if (allBle) {
-        options.acceptAllDevices = true;
-    } else {
-        options.filters = filters;
-    }
-    log('Requesting any Bluetooth Device...');
-    let chid = 'generic_access';
-    //let chid = 'device_information';
+    var options = {};
+    var allBle = true;
     window.ble = { svcs: {}, svc2chars: {}, chars: {} };
     svcs = [NORDIC_UART_SERVICE_UUID, SYSEVENT_NOTIFICATION_SERVICE_UUID, WACOM_LIVE_SERVICE_UUID, WACOM_OFFLINE_SERVICE_UUID];
     char2svcSub = {};
@@ -162,14 +146,33 @@ function findBle(e) {
     char2svcSub[SYSEVENT_NOTIFICATION_SERVICE_UUID] = [SYSEVENT_NOTIFICATION_CHRC_UUID];
     char2svcSub[WACOM_LIVE_SERVICE_UUID] = [WACOM_CHRC_LIVE_PEN_DATA_UUID];
     char2svcSub[WACOM_OFFLINE_SERVICE_UUID] = [WACOM_OFFLINE_CHRC_PEN_DATA_UUID];
-    let decoder = new TextDecoder('utf-8');
+    options.optionalServices = svcs;
+    var elNamePfx = document.getElementById('bleNamePfx');
+    if (elNamePfx) {
+        let filterName = elNamePfx.value;
+        if (filterName && filterName != "") {
+            filters.push({ namePrefix: filterName });
+            allBle = false;
+        }
+    }
+    if (allBle) {
+        options.acceptAllDevices = true;
+    } else {
+        options.filters = filters;
+    }
+    console.log(options);
+    return options;
+}
+
+function findBle(e) {
+    // log(e);
+    // let chid = 'generic_access';
+    // let chid = 'device_information';
+    // let decoder = new TextDecoder('utf-8');
     let encoder = new TextEncoder('utf-8');
-    navigator.bluetooth.requestDevice({
-        // filters: [...] <- Prefer filters to save energy & show relevant devices.
-        // filters: filters,
-        acceptAllDevices: true,
-        optionalServices: svcs
-    })
+    let options = prepBle();
+    log('Requesting Bluetooth Device...');
+    navigator.bluetooth.requestDevice(options)
         .then(device => {
             log('Connecting to GATT Server...');
             window.ble.device = device;
@@ -227,40 +230,10 @@ function findBle(e) {
 }
 
 function regBle(e) {
-    log(e);
-    let filters = [];
-    var elName = document.getElementById('bleName');
-    if (elName) {
-        let filterName = elName.value;
-        if (filterName) {
-            filters.push({ name: filterName });
-        }
-    }
-    let options = {};
-    let allBle = true;
-    if (allBle) {
-        options.acceptAllDevices = true;
-    } else {
-        options.filters = filters;
-    }
-    log('Requesting any Bluetooth Device...');
-    let chid = 'generic_access';
-    //let chid = 'device_information';
-    window.ble = { svcs: {}, svc2chars: {}, chars: {} };
-    svcs = [NORDIC_UART_SERVICE_UUID, SYSEVENT_NOTIFICATION_SERVICE_UUID, WACOM_LIVE_SERVICE_UUID, WACOM_OFFLINE_SERVICE_UUID];
-    char2svcSub = {};
-    char2svcSub[NORDIC_UART_SERVICE_UUID] = [NORDIC_UART_CHRC_RX_UUID];
-    char2svcSub[SYSEVENT_NOTIFICATION_SERVICE_UUID] = [SYSEVENT_NOTIFICATION_CHRC_UUID];
-    char2svcSub[WACOM_LIVE_SERVICE_UUID] = [WACOM_CHRC_LIVE_PEN_DATA_UUID];
-    char2svcSub[WACOM_OFFLINE_SERVICE_UUID] = [WACOM_OFFLINE_CHRC_PEN_DATA_UUID];
-    let decoder = new TextDecoder('utf-8');
     let encoder = new TextEncoder('utf-8');
-    navigator.bluetooth.requestDevice({
-        // filters: [...] <- Prefer filters to save energy & show relevant devices.
-        //filters: filters,
-        acceptAllDevices: true,
-        optionalServices: svcs
-    })
+    let options = prepBle();
+    log('Requesting Bluetooth Device...');
+    navigator.bluetooth.requestDevice(options)
         .then(device => {
             log('Connecting to GATT Server...');
             addLog("Connecting to GATT Server");
@@ -299,7 +272,7 @@ function regBle(e) {
             });
             return queueSvc;
         }).then(_ => {
-            log("here");
+            log("finished");
             if (elDebug) {
                 elDebug.innerHTML = "Connected";
             }
@@ -540,4 +513,27 @@ function topright() {
         elCanvasDiv.style.left = idSize.l;
         elCanvasDiv.style.top = idSize.t;
     }
+}
+
+function setCookie(name,value,days=100) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+function eraseCookie(name) {   
+    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
