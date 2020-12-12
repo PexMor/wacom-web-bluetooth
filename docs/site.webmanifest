@@ -16,12 +16,12 @@
         }
     ],
     "serviceworker": {
-      "src": "sw_f75dc846645c3be9d59aefc3e87092c5506ccd69.js",
+      "src": "sw_5b4da0f3651acbc218c53ab354358249bdb1045e.js",
       "scope": "."
     },
     "theme_color": "#ffffff",
     "background_color": "#ffffff",
     "display": "standalone",
-    "start_url": "index_11551f49140984263ae371fc07f488eb62399fd0.html",
+    "start_url": "index_75ba3feac6bfbd6d7bd6fefbfc7e3c7ccbeeed63.html",
     "prefer_related_applications": false
 }
