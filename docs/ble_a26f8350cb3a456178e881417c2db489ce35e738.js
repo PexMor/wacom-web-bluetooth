@@ -771,7 +771,7 @@ function eraseCookie(name) {
 }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw_5b4da0f3651acbc218c53ab354358249bdb1045e.js')
+  navigator.serviceWorker.register('sw_56ae474728bbbc3d2e0ca24b25d4ef2331471131.js')
   .then(function(registration) {
     console.log('Registration successful, scope is:', registration.scope);
   })
