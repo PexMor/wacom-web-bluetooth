@@ -769,3 +769,13 @@ function getCookie(name) {
 function eraseCookie(name) {
     document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw_5b4da0f3651acbc218c53ab354358249bdb1045e.js')
+  .then(function(registration) {
+    console.log('Registration successful, scope is:', registration.scope);
+  })
+  .catch(function(error) {
+    console.log('Service worker registration failed, error:', error);
+  });
+}
