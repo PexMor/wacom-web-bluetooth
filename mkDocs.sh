@@ -3,7 +3,7 @@
 # this is a tool script that makes static webmanifest
 #
 
-# files to transform
+# files to transform (make unique)
 FNS=(ble.js index.html desc.html)
 
 # make sure that static names reflect the content
@@ -29,6 +29,9 @@ for FN in "${FNS[@]}"; do
     RC=$?
     echo "-=[ RC: $RC"
 done
+
+FN="site.webmanifest"
+cat "$FN" | sed -f fn_hash.sed > "docs/$FN"
 
 FN=index.html
 NFN=`echo "$FN" | sed -f fn_hash.sed`
