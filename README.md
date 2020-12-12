@@ -4,7 +4,9 @@ The reference implementation of Wacom Bamboo Slate S inside browser implementing
 
 ![Bamboo Image](docs/bamboo.jpg)
 
-For the source please check the [docs](docs) subfolder.
+This project consists of own source code and static resources. Those resource are either directly included or linked via url (see [index.html](index.html)).
+
+The core of the application is in the [ble.js](ble.js).
 
 For the demo open the github pages at [https://pexmor.github.io/wacom-web-bluetooth/](https://pexmor.github.io/wacom-web-bluetooth/).
 
