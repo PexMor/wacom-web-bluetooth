@@ -62,3 +62,7 @@ cat "$FN" | sed -f fn_hash.sed > "docs/$FN"
 FN=index.html
 NFN=`echo "$FN" | sed -f fn_hash.sed`
 ln -sf $NFN docs/$FN
+
+FN=sw.js
+NFN=`echo "$FN" | sed -f fn_hash.sed`
+ln -sf $NFN docs/$FN

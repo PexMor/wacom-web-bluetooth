@@ -770,9 +770,8 @@ function eraseCookie(name) {
     document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
-/*
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js')
+  navigator.serviceWorker.register('sw.js?refresh')
   .then(function(registration) {
     console.log('Registration successful, scope is:', registration.scope);
   })
@@ -780,4 +779,4 @@ if ('serviceWorker' in navigator) {
     console.log('Service worker registration failed, error:', error);
   });
 }
-*/
+

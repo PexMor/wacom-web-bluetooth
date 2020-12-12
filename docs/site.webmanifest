@@ -16,7 +16,7 @@
         }
     ],
     "serviceworker": {
-      "src": "sw_5fbf89307b12925360972f8935fe8e00732e116b.js",
+      "src": "sw_c75313f7b2ad7d00e76ad41ce451c25514056de5.js",
       "scope": "."
     },
     "theme_color": "#ffffff",
