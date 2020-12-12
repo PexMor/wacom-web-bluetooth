@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Description: Wacom in a Browser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="github-markdown.css">
+    <link rel="stylesheet" href="embedmd.css">
+    <link href="//fonts.googleapis.com/css2?family=Open+Sans&family=Roboto&display=swap&subset=latin,latin-ext" rel="stylesheet"> 
+    <script src="mdjs/markdown.js"></script>
+    <script>
+var mdSrc=`
+## Bluetooth demo for Wacom Bamboo Slate
+
+![Bamboo Img](bamboo.jpg)
+
+This is the [Web Bluetooth API](https://webbluetoothcg.github.io/web-bluetooth/) demostrator.
+Source code at Github [github.com/PexMor/wacom-web-bluetooth](https://github.com/PexMor/wacom-web-bluetooth).
+Actually an attempt to make realworld app that can be used.
+
+[Open the application](index_55564555f420b65ae9c549f8874e1558d2d276db.html)
+
+### Operation
+
+__Registration__
+
+done just once, it might be a bit tricky, please follow on screen instructions and eventually re-try.
+
+1. Make sure you have a Web Bluetooth capable browser (Desktop Chrome or Android Chrome), you might need to enable it ([see how](https://reelyactive.github.io/pareto-anywhere/enable-web-bluetooth-scanning/#:~:text=Chrome%20Browser,-On%20Android%20and&text=Enable%20Web%20Bluetooth%20Scanning%20in%20two%20steps%3A,select%20Enabled)).
+2. Get your __Wacom Bamboo Slate__ device at hand
+3. Make backup of its content
+4. Get the device into blue led blinking (Registration pending)
+5. Press \`Reg\` Button, then upon request in the Log space press the button on the device
+6. You are registered with your device! 1st phase done!
+
+__Connect__
+
+1. Wakeup the device by pressing its button
+2. Press \`Conn\` button
+3. The device should connect (it takes some second or two)
+4. You get switched to drawing pane and you can start drawing.
+
+`;
+        window["markdown"].ready.then(markdown => {
+            var res = markdown.parse(mdSrc);
+            var el = document.getElementById('render');
+            if (el) {
+                el.innerHTML = res;
+            }
+        });
+    </script>
+  <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+    <div id='render' class='markdown-body'></div>
+</body>
+
+</html>
