@@ -4,7 +4,7 @@ The reference implementation of Wacom Bamboo Slate S inside browser implementing
 
 ![Bamboo Image](docs/bamboo.jpg)
 
-This project consists of own source code and static resources. Those resource are either directly included or linked via url (see [index.html](index.html)).
+This project consists of own source code and static resources. Those resources are either directly included (in [docs](docs) folder) or linked via url (see header of [index.html](index.html)).
 
 The core of the application is in the [ble.js](ble.js).
 
