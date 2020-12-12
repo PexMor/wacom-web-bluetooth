@@ -4,7 +4,7 @@
 #
 
 # files to transform (make unique)
-FNS=(ble.js index.html desc.html)
+FNS=(ble.js index.html desc.html sw.js)
 
 # make sure that static names reflect the content
 echo "-=[ Filename to hash sed"
